@@ -6,40 +6,50 @@ Usage:
     clip.py list  
 """
 
-import shelve, pyperclip, sys
+import pyperclip, sys, json, os
 from docopt import docopt
 
-def save_clipboard(name, mcbShelf):
-    mcbShelf[name] = pyperclip.paste()
+FILE_NAME = "clipboard.json"
 
-def load_name(name, mcbShelf):
-    if name in mcbShelf:
-        pyperclip.copy(mcbShelf[name])
+def open_file():
+    with open(FILE_NAME, 'r+') as file:
+        return json.load(file)
 
-def list_shelf(mcbShelf):
-    dictionary = {}
-    for x in mcbShelf.keys():
-        # This is dangerous if you have a really large file, but I won't 
-        dictionary[x] = mcbShelf[x]
+def write_file(data):
+    with open(FILE_NAME, 'w') as file:
+        json.dump(data, file, indent=2)
+
+def save_clipboard(name, dictionary):
+    dictionary[name] = pyperclip.paste()
+
+def load_name(name, dictionary):
+    if name in dictionary:
+        pyperclip.copy(dictionary[name])
+
+def list_shelf(dictionary):
     pyperclip.copy(str(dictionary))
 
-def delete_key(name, mcbShelf):
-    if name in mcbShelf:
-        del mcbShelf[name]
+def delete_key(name, dictionary):
+    if name in dictionary:
+        del dictionary[name]
 
 if __name__ == "__main__":
     # Make this try catch finally, or atexit module???
     arguments = docopt(__doc__)
-    mcbShelf = shelve.open('mcb')
+    file_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(file_path)
+    dictionary = open_file()
 
     if (arguments["save"]):
-        save_clipboard(arguments['<reference_name>'], mcbShelf)
+        save_clipboard(arguments['<reference_name>'], dictionary)
     elif (arguments["load"]):
-        load_name(arguments['<reference_name>'],  mcbShelf)
+        load_name(arguments['<reference_name>'],  dictionary)
+        sys.exit()
     elif (arguments["list"]):
-        list_shelf(mcbShelf)
+        list_shelf(dictionary)
+        sys.exit()
     else:
         # Has to be delete
-        delete_key(arguments["<reference_name>"], mcbShelf)
+        delete_key(arguments["<reference_name>"], dictionary)
 
-    mcbShelf.close()
+    write_file(dictionary)
