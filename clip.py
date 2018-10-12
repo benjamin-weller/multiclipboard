@@ -1,6 +1,6 @@
 """
 Usage:
-    clip.py save <reference_name>
+    clip.py save <reference_name> [<reference_value>]
     clip.py load <reference_name>                  
     clip.py delete <reference_name>
     clip.py list  
@@ -19,8 +19,8 @@ def write_file(data):
     with open(FILE_NAME, 'w') as file:
         json.dump(data, file, indent=2)
 
-def save_clipboard(name, dictionary):
-    dictionary[name] = pyperclip.paste()
+def save_clipboard(name, dictionary, reference_value=pyperclip.paste()):
+    dictionary[name] = reference_value
 
 def load_name(name, dictionary):
     if name in dictionary:
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     dictionary = open_file()
 
     if (arguments["save"]):
-        save_clipboard(arguments['<reference_name>'], dictionary)
+        save_clipboard(arguments['<reference_name>'], dictionary, arguments.get("<reference_value>"))
     elif (arguments["load"]):
         load_name(arguments['<reference_name>'],  dictionary)
         sys.exit()
