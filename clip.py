@@ -1,6 +1,6 @@
 """
 Usage:
-    clip.py save <reference_name> [<reference_value>]
+    clip.py save <reference_name> [<reference_value>]...
     clip.py load <reference_name>                  
     clip.py delete <reference_name>
     clip.py list  
@@ -17,9 +17,9 @@ def open_file():
 
 def write_file(data):
     with open(FILE_NAME, 'w') as file:
-        json.dump(data, file, indent=2)
+        json.dump(data, file, indent=4)
 
-def save_clipboard(name, dictionary, reference_value=pyperclip.paste()):
+def save_clipboard(name, dictionary, reference_value):
     dictionary[name] = reference_value
 
 def load_name(name, dictionary):
@@ -33,15 +33,23 @@ def delete_key(name, dictionary):
     if name in dictionary:
         del dictionary[name]
 
+def validate_key(key, dictionary):
+    value = dictionary.get(key)
+    if isinstance(value, list) and len(value) == 1:
+        return value[0]
+    elif isinstance(value, list) and len(value) > 1:
+        return value
+    else:
+        return pyperclip.paste()
+
 if __name__ == "__main__":
-    # Make this try catch finally, or atexit module???
     arguments = docopt(__doc__)
     file_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(file_path)
     dictionary = open_file()
 
     if (arguments["save"]):
-        save_clipboard(arguments['<reference_name>'], dictionary, arguments.get("<reference_value>"))
+        save_clipboard(arguments['<reference_name>'], dictionary, validate_key("<reference_value>", arguments))
     elif (arguments["load"]):
         load_name(arguments['<reference_name>'],  dictionary)
         sys.exit()
